@@ -205,8 +205,8 @@ public class MainActivity extends AppCompatActivity {
 
                 // 텍스트 탐지 후, 빨간색 사각형으로 표시
                 if (!firstList.isEmpty()) {
-                    for (JsonArray boundingBox : firstList) {
-                        drawBoundingBoxOnImage(boundingBox); // 사각형 그리기
+                    for (int i = 0; i < firstList.size(); i++) {
+                        drawBoundingBoxOnImage(firstList.get(i), i); // 사각형 그리기
                     }
                 }
             } else {
@@ -279,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
             showErrorDialog("Error", e.getMessage());
         }
     }
-    private void drawBoundingBoxOnImage(JsonArray boundingBoxArray) {
+    private void drawBoundingBoxOnImage(JsonArray boundingBoxArray, int index) {
         // 이미지 뷰에서 비트맵 가져오기
         Bitmap originalBitmap = getBitmapFromImageView();
 
@@ -294,23 +294,26 @@ public class MainActivity extends AppCompatActivity {
         paint.setStrokeWidth(5);
 
         // 좌표를 사용하여 사각형 직선으로 그리기
-        for (int i = 0; i < boundingBoxArray.size(); i++) {
-            JsonObject vertexJson = boundingBoxArray.get(i).getAsJsonObject();
-            float x = vertexJson.getAsJsonPrimitive("x").getAsFloat();
-            float y = vertexJson.getAsJsonPrimitive("y").getAsFloat();
+        if (resultIndices.contains(index)) {
+            for (int i = 0; i < boundingBoxArray.size(); i++) {
+                JsonObject vertexJson = boundingBoxArray.get(i).getAsJsonObject();
+                float x = vertexJson.getAsJsonPrimitive("x").getAsFloat();
+                float y = vertexJson.getAsJsonPrimitive("y").getAsFloat();
 
-            // 연결된 다음 좌표 인덱스 계산
-            int nextIndex = (i + 1) % boundingBoxArray.size();
-            JsonObject nextVertexJson = boundingBoxArray.get(nextIndex).getAsJsonObject();
-            float nextX = nextVertexJson.getAsJsonPrimitive("x").getAsFloat();
-            float nextY = nextVertexJson.getAsJsonPrimitive("y").getAsFloat();
+                // 연결된 다음 좌표 인덱스 계산
+                int nextIndex = (i + 1) % boundingBoxArray.size();
+                JsonObject nextVertexJson = boundingBoxArray.get(nextIndex).getAsJsonObject();
+                float nextX = nextVertexJson.getAsJsonPrimitive("x").getAsFloat();
+                float nextY = nextVertexJson.getAsJsonPrimitive("y").getAsFloat();
 
-            // 텍스트 주변에 직선으로 사각형 그리기
-            canvas.drawLine(x, y, nextX, nextY, paint);
+                // 텍스트 주변에 직선으로 사각형 그리기
+                canvas.drawLine(x, y, nextX, nextY, paint);
+            }
+            // 수정된 비트맵으로 이미지 뷰 업데이트
+            imageView.setImageBitmap(bitmap);
         }
-        // 수정된 비트맵으로 이미지 뷰 업데이트
-        imageView.setImageBitmap(bitmap);
     }
+
     // 문장단위 좌표 추출
     private JsonArray extractSentenceCoordinates(AnnotateImageResponse response) {
         JsonArray sentencesJsonArray = new JsonArray();
@@ -662,8 +665,7 @@ public class MainActivity extends AppCompatActivity {
                 ".*" + "\\b(1[0-5][0-9]|16[0-1])[ -]*\\d{3}[ -]*\\d{6}\\b" + ".*", // 신한은행 (신)
                 ".*" + "\\b\\d{3}[ -]*\\d{6}[ -]*\\d{3}(05|07|08|02|01|04|94)\\b" + ".*", // 하나은행
                 ".*" + "\\b\\d{3,4}[ -]*\\d(01|02|12|06|05|17)[ -]*\\d{6}\\b" + ".*", // 농협은행 (구 11자리)
-                ".*\\b3(01|02|12|06|05|17)[ -]*\\d{4}[ -]*\\d{4}[ -]*\\d{2}\\b.*",
-//                ".*" + "\\b\\3\\d(01|02|12|06|05|17)[ -]*\\d{4}[ -]*\\d{4}[ -]*\\d{2}\\b" + ".*", // 농협은행 (신 13자리)
+                ".*\\b3(01|02|12|06|05|17)[ -]*\\d{4}[ -]*\\d{4}[ -]*\\d{2}\\b.*",// 농협은행 (신 13자리)
                 ".*" + "\\b\\d{6}[ -]*\\d(51|52|56)[ -]*\\d{6}\\b" + ".*", // 단위농협 (구 14자리)
                 ".*" + "\\b3(51|52|56)[ -]*\\d{4}[ -]*\\d{4}[ -]*\\d{2}\\b" + ".*", // 단위농협 (13자리)
                 ".*\\b\\d{3}[ -]*(01|02|03|13|07|06|04)\\d{1}[ -]*\\d{6}\\b.*", // 기업은행 (12자리)
@@ -678,9 +680,10 @@ public class MainActivity extends AppCompatActivity {
         };
 
         // 전화번호 정규 표현식
-        String regexPattern3 = "\\b(?:010|02|031|032|033|041|042|043|044|051|052|053|054|055|061|062|063|064)[ -]+\\d{2,4}[ -]+\\d{2,4}\\b";
-        String regexPattern4 = "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})\\d{4}\\d{4}\\b";
-        String regexPattern5 = "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})[. -]+\\d{1,4}[. -]+\\d{4}\\b";
+
+        String regexPattern3 = ".*" + "\\b(?:010|02|031|032|033|041|042|043|044|051|052|053|054|055|061|062|063|064)[ -]*\\d{2,4}[ -]*\\d{2,4}\\b" + ".*";
+        String regexPattern4 = ".*" + "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})\\d{4}\\d{4}\\b" + ".*";
+        String regexPattern5 = ".*" + "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})[. -]*\\d{1,4}[. -]*\\d{4}\\b" + ".*";
 
         // 카드번호 정규 표현식
         String[] creditCardPatterns = {
