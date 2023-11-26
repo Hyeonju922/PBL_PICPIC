@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/baseLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -9,7 +10,7 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="342dp"
+        android:layout_height="461dp"
         android:scaleType="fitCenter" />
 
     <Button
@@ -17,46 +18,37 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Select Image" />
+        android:text="사진 선택하기" />
 
     <Button
         android:id="@+id/btnTestImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Test Image" />
+        android:text="개인정보 검사하기" />
 
 
-
-    <Button
-        android:id="@+id/btnBlur"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Blur"
-        android:layout_gravity="center"
-        android:layout_centerHorizontal="true"/>
+        android:gravity="center_horizontal"
+        />
 
     <Button
-        android:id="@+id/btnShowLists"
+        android:id="@+id/btnList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="List"/>
+        android:text="검출목록 보기" />
+
 
     <Button
         android:id="@+id/btnSaveImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Save Blurred Image" />
-
-
-    <Button
-        android:id="@+id/btnCheckRegex"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center"
-        android:layout_height="wrap_content"
-        android:text="정규식 확인" />
+        android:text="이미지 저장하기" />
 
 
 </LinearLayout>
