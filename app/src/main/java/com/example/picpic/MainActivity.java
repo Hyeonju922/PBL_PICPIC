@@ -460,6 +460,7 @@ public class MainActivity extends AppCompatActivity {
         // Display the matched values in an AlertDialog
         if (matchedValuesBuilder.length() > 0) {
             showListDial("Matched Values", matchedValuesBuilder.toString());
+
         } else {
             showListDial("No Matches", "No text matched any of the regex patterns.");
         }
@@ -488,6 +489,36 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+
+    private void showListDial2(String title, String[] items) {
+        boolean[] checkedItems = new boolean[items.length]; // 초기에는 모두 체크되지 않도록 배열 초기화
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title)
+                .setMultiChoiceItems(items, checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                        // 여기에 체크박스를 클릭했을 때의 동작을 추가할 수 있습니다.
+                    }
+                })
+                .setPositiveButton("개인정보 마스킹", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // 확인 버튼이 눌렸을 때 블러 처리하는 부분
+                        applyBlurToRedRectangles();
+                    }
+                })
+                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        // 여기에 취소 버튼을 눌렀을 때 수행할 동작...머있지
+                    }
+                })
+                .create()
+                .show();
+    }
+
     private void showListDial(String title, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title)
@@ -651,10 +682,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private List<String> initializeRegexPatterns() {
-        // 주민등록번호 정규 표현식
-        String regexPattern1 = "\\d{2}([0]\\d|[1][0-2])([0][1-9]|[1-2]\\d|[3][0-1])[-][1-4]\\d{6}";
-        String regexPattern2 = "\\d{1}([0]\\d|[1][0-2])([0][1-9]|[1-2]\\d|[3][0-1])[-][1-4]\\d{5}";
 
+        // 주민등록번호 정규 표현식
+        String[] ResidentRegistrationNumberPatterns = {
+                "\\d{2}(0[1-9]|1[0-2])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
+                ".(0[1-9]|1[0-2])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
+                "\\d(0[1-9])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
+                "1([0-2])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
+                ".(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}"
+        };
+
+        //계좌번호 정규 표현식
         String[] accountNumberPatterns = {
                 ".*"  + "\\b0\\d{3}(01|02|24|05|04|25|26)[ -]*\\d{4}[ -]*\\d{4}" + "\\b.*", // 국민은행
                 ".*\\b\\d{3}[ -]*(01|02|24|05|04|25|26)[ -]*\\d{4}[ -]*\\d{3}\\b.*", // 국민은행 (구)
@@ -680,27 +718,41 @@ public class MainActivity extends AppCompatActivity {
         };
 
         // 전화번호 정규 표현식
-
         String regexPattern3 = ".*" + "\\b(?:010|02|031|032|033|041|042|043|044|051|052|053|054|055|061|062|063|064)[ -]*\\d{2,4}[ -]*\\d{2,4}\\b" + ".*";
         String regexPattern4 = ".*" + "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})\\d{4}\\d{4}\\b" + ".*";
         String regexPattern5 = ".*" + "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})[. -]*\\d{1,4}[. -]*\\d{4}\\b" + ".*";
 
         // 카드번호 정규 표현식
         String[] creditCardPatterns = {
-                "\\b(?:\\d{4}[ -]?\\d{6}[ -]?\\d{5}|37\\d{2}[ -]?\\d{6}[ -]?\\d{5})\\b",   // American Express
                 "\\b4\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",         // VISA
-                "\\b5[1-5]\\d{2}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",               // MasterCard
-                "\\b(?:62|\\d{4}[ -]?){3}\\d{4,11}\\b",        // China UnionPay
-                "\\b3(?:0[0-5]|[68][0-9])\\d{11}\\b",   // Diners Club International
+                "\\b5[1-5]\\d{2}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",     // MasterCard
+                "\\b(?:\\d{4}[ -]?\\d{6}[ -]?\\d{5}|37\\d{2}[ -]?\\d{6}[ -]?\\d{5})\\b",   // American Express
+                "\\b(?:62|\\d{4}[ -]?){3}\\d{4,11}\\b",                    // China UnionPay
+                "\\b9\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",          // 국내 카드 회사
+                "\\b(?:2131|1800|35\\d{3})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",  // JCB
+                "\\b3(?:0[0-5]|[68][0-9])\\d{11}\\b",                      // Diners Club International
                 "\\b6(?:011|5[0-9]{2})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",   // Discover Card
-                "\\b(?:2131|1800|35\\d{3})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",    // JCB
-                "\\b9\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b" //국내 카드 회사인데 이거 진짜 고민 필요
+                "\\b(?:^|\\b)(?:\\d{0,3} ?)?\\d{4} ?\\d{4} ?\\d{4}(?:\\b|$)",    // Visa 추가
+                "\\b(?:\\s*\\d{0,3}\\s*)?\\d{1,5}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b",  // MasterCard 추가
+                "\\b(?:\\s*\\d{0,4}\\s*)?(?:62|\\d{4}\\s*){2,3}\\d{4,11}\\b",     // UnionPay 추가
+                "\\b(?:\\s*\\d{0,4}\\s*)?(?:9\\d{3}|\\d{1,8})\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b",  // 국내 카드 회사 추가
+                "\\b(?:35\\d{2}(?:\\s*\\d{4}){3}|\\s*(?:2[13]|1800)?\\s*\\d{0,4}(?:\\s*\\d{4}){2}\\s*\\d{4})\\b",  // JCB 추가
+                "\\b(?:\\s*\\d{0,4}\\s*)?(?:6(?:011|5[0-9]{2})|\\d{1,8})\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b"   // Discover 추가
         };
+//        String[] creditCardPatterns = {
+//                "\\b(?:\\d{4}[ -]?\\d{6}[ -]?\\d{5}|37\\d{2}[ -]?\\d{6}[ -]?\\d{5})\\b",   // American Express
+//                "\\b4\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",         // VISA
+//                "\\b5[1-5]\\d{2}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",               // MasterCard
+//                "\\b(?:62|\\d{4}[ -]?){3}\\d{4,11}\\b",        // China UnionPay
+//                "\\b3(?:0[0-5]|[68][0-9])\\d{11}\\b",   // Diners Club International
+//                "\\b6(?:011|5[0-9]{2})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",   // Discover Card
+//                "\\b(?:2131|1800|35\\d{3})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",    // JCB
+//                "\\b9\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b" //국내 카드 회사인데 이거 진짜 고민 필요
+//        };
 
         // 정규 표현식 패턴 리스트 초기화
         regexPatterns = new ArrayList<>();
-        regexPatterns.add(regexPattern1);
-        regexPatterns.add(regexPattern2);
+        regexPatterns.addAll(Arrays.asList(ResidentRegistrationNumberPatterns));
         regexPatterns.addAll(Arrays.asList(accountNumberPatterns));
         regexPatterns.add(regexPattern3);
         regexPatterns.add(regexPattern4);
