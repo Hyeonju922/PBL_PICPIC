@@ -67,8 +67,13 @@ public class MainActivity extends AppCompatActivity {
     private List<String> secondList = new ArrayList<>(); // 텍스트를 저장할 리스트 (열)
     private List<String> thirdList = new ArrayList<>(); // 텍스트를 저장할 리스트 (단어)
 
-    private List<Integer> resultIndices = new ArrayList<>();
-    private List<Integer> matchingIndices = new ArrayList<>();
+    private List<String>detectList = new ArrayList<>();
+    private List<String>test1 = new ArrayList<>();
+    private List<String>test2 = new ArrayList<>();
+
+    private List<Integer> matchingIndices = new ArrayList<>(); // 몇번쨰 열에서 검출되었는지 ( second)
+
+    private List<Integer> resultIndices = new ArrayList<>();//  검출된 단어 목록 (검출된 열의 모든 단어 )
 
 
 
@@ -104,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        //버튼과 메소드 연결
+        //버튼과 메소드 연결=============================================================================
 
         //사진 선택
         findViewById(R.id.btnSelectImage).setOnClickListener(new View.OnClickListener() {
@@ -124,8 +129,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.btnList).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // textList 버튼을 눌렀을 때 개인정보 검출 및 다이얼로그 표시
-                showDetectedInfoDialog();
+//                checkRegex();
+//                showDetectedInfoDialog();
+                showList();
             }
         });
 
@@ -186,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 이미지 내 개인정보 검사===============================================================
     private void testImage() {
+
         if (imageView.getDrawable() == null) {
             showErrorDialog("Error", "Please select an image first");
             return;
@@ -213,6 +220,9 @@ public class MainActivity extends AppCompatActivity {
             showErrorDialog("Error", e.getMessage());
         }
     }
+
+
+
 
     // Cloud Vision API를 사용하여 이미지에서 텍스트 탐지
     private void detectTextFromImage(Bitmap bitmap) {
@@ -270,7 +280,6 @@ public class MainActivity extends AppCompatActivity {
             //개수 출력
             TextView tv = findViewById(R.id.textView);//검출된 개인정보 개수 출력 textview
             tv.setText("개인정보가 " + matchingIndices.size()+"개 검출되었습니다.");
-//            tv.setText( matchingIndices.toString() +" 전부: " +indexL.toString() );
         } catch (Exception e) {
             e.printStackTrace();
             showErrorDialog("Error", e.getMessage());
@@ -366,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
             String text = inputList.get(i);
 
             // 정규 표현식 패턴에 대해 루프 수행
-            for (String regexPattern : regexPatterns) {
+            for (String regexPattern                                                                                                                                                                                                         : regexPatterns) {
                 // 정규 표현식에 맞는지 확인
                 if (Pattern.matches(regexPattern, text)) {
                     matchingIndices.add(i);
@@ -389,6 +398,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return resultIndices;
+
     }
     private void Length(List<String> inputList, List<Integer> targetList, String listName) {
         for (String item : inputList) {
@@ -419,19 +429,21 @@ public class MainActivity extends AppCompatActivity {
 
     //검출된 목록 보기===========================================================
 
-    private void showDetectedInfoDialog() {
+    private void showList() {
         // 검출된 개인정보 목록을 다이얼로그에 체크리스트로 표시하는 코드
-        final List<String> detectedInfoList = getDetectedPersonalInformation();
-        final boolean[] checkedItems = new boolean[detectedInfoList.size()];
+        final boolean[] checkedItems = new boolean[matchingIndices.size()]; //블러에 전달한 거
+        detectList.clear();
+        for (int i : matchingIndices) {
+            detectList.add(secondList.get(i));
+        }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
         builder.setTitle("검출된 개인정보 목록")
-                .setMultiChoiceItems(detectedInfoList.toArray(new CharSequence[detectedInfoList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+                .setMultiChoiceItems(detectList.toArray(new CharSequence[detectList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                        // 체크 상태 변경 시 동작하는 부분 (필요에 따라 추가 구현)
-                        // 여기서는 예제로 체크 상태를 저장하는 코드만 포함하였습니다.
-                        checkedItems[which] = isChecked;
+                        checkedItems[which] = isChecked; //블러에 전달할거
                     }
                 })
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
@@ -445,12 +457,46 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("취소", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        // 취소 버튼을 눌렀을 때 동작하는 부분 (필요에 따라 추가 구현)
+                        // 취소 버튼을 눌렀을 때 동작하는 부분 (아직 암것두 안함 뭐가있지)
                     }
                 })
                 .create()
                 .show();
     }
+
+
+//
+//    private void showDetectedInfoDialog() {
+//        // 검출된 개인정보 목록을 다이얼로그에 체크리스트로 표시하는 코드
+//        final List<String> detectedInfoList = getDetectedPersonalInformation();
+//        final boolean[] checkedItems = new boolean[detectedInfoList.size()];
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//
+//        builder.setTitle("검출된 개인정보 목록")
+//                .setMultiChoiceItems(detectList.toArray(new CharSequence[detectList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+//                        checkedItems[which] = isChecked; //
+//                    }
+//                })
+//                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // 확인 버튼을 눌렀을 때 동작하는 부분
+//                        applyBlurToSelectedRectangles(checkedItems);
+//
+//                    }
+//                })
+//                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // 취소 버튼을 눌렀을 때 동작하는 부분 (아직 암것두 안함 뭐가있지)
+//                    }
+//                })
+//                .create()
+//                .show();
+//    }
 
     private List<String> getDetectedPersonalInformation() {
         List<String> detectedInfoList = new ArrayList<>();
@@ -472,50 +518,34 @@ public class MainActivity extends AppCompatActivity {
             Canvas canvas = new Canvas(bitmapCopy);
 
             for (int i = 0; i < checkedItems.length; i++) {
-                if (checkedItems[i] && i < resultIndices.size()) {
-                    int index = resultIndices.get(i);
-                    if (index < firstList.size()) {
-                        JsonArray boundingBox = firstList.get(index);
-                        Path path = new Path();
-                        setPathFromBoundingBox(path, boundingBox);
-                        canvas.save();
-                        canvas.clipPath(path);
-                        Bitmap blurredBitmap = applyBlur(originalBitmap);
-                        canvas.drawBitmap(blurredBitmap, 0, 0, null);
-                        canvas.restore();
-                    }
-                }
-            }
+                if (checkedItems[i]) {
 
+                    for(int j = 0; j<indexL.size(); j++){
+                        if(indexL.get(j) == matchingIndices.get(i)){
+
+                            test1.add(matchingIndices.get(i).toString());
+                            test2.add(indexL.get(j).toString());
+
+                            JsonArray boundingBox = firstList.get(j);
+                            Path path = new Path();
+                            setPathFromBoundingBox(path, boundingBox);
+                            canvas.save();
+                            canvas.clipPath(path);
+                            Bitmap blurredBitmap = applyBlur(originalBitmap);
+                            canvas.drawBitmap(blurredBitmap, 0, 0, null);
+                            canvas.restore();
+                        }
+                }
+
+                }
+                TextView tv = findViewById(R.id.textView);//검출된 개인정보 개수 출력 textview
+                tv.setText("개인정보가 " + test2.toString()+" ////" +test2.toString() );
+            }
             imageView.setImageBitmap(bitmapCopy);
         } else {
             showErrorDialog("Error", "Failed to get original bitmap");
         }
     }
-
-    private void showListDial(String title, String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title)
-                .setMessage(message)
-                .setPositiveButton("개인정보 마스킹", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        // 확인 버튼이 눌렸을 때 블러 처리하는 부분
-                        applyBlurToRedRectangles();
-
-                    }
-                })
-                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        // 여기에 취소 버튼을 눌렀을 때 수행할 동작...머있지
-                    }
-                })
-                .create()
-                .show();
-    }
-
-
 
     //마스킹된 사진 저장하기======================================================================
     private void saveImageToGallery(Bitmap bitmap) {
@@ -713,16 +743,6 @@ public class MainActivity extends AppCompatActivity {
                 "\\b(?:35\\d{2}(?:\\s*\\d{4}){3}|\\s*(?:2[13]|1800)?\\s*\\d{0,4}(?:\\s*\\d{4}){2}\\s*\\d{4})\\b",  // JCB 추가
                 "\\b(?:\\s*\\d{0,4}\\s*)?(?:6(?:011|5[0-9]{2})|\\d{1,8})\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b"   // Discover 추가
         };
-//        String[] creditCardPatterns = {
-//                "\\b(?:\\d{4}[ -]?\\d{6}[ -]?\\d{5}|37\\d{2}[ -]?\\d{6}[ -]?\\d{5})\\b",   // American Express
-//                "\\b4\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",         // VISA
-//                "\\b5[1-5]\\d{2}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",               // MasterCard
-//                "\\b(?:62|\\d{4}[ -]?){3}\\d{4,11}\\b",        // China UnionPay
-//                "\\b3(?:0[0-5]|[68][0-9])\\d{11}\\b",   // Diners Club International
-//                "\\b6(?:011|5[0-9]{2})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",   // Discover Card
-//                "\\b(?:2131|1800|35\\d{3})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",    // JCB
-//                "\\b9\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b" //국내 카드 회사인데 이거 진짜 고민 필요
-//        };
 
         // 정규 표현식 패턴 리스트 초기화
         regexPatterns = new ArrayList<>();
@@ -736,26 +756,83 @@ public class MainActivity extends AppCompatActivity {
         return regexPatterns;
     }
 
-
-//    private void showTextDialog(String title, String message) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle(title);
-//        builder.setMessage(message);
 //
-//        // 확인 버튼 추가
-//        builder.setPositiveButton("확인", (dialog, which) -> {
-//            // JSON 메시지 파싱하여 바운딩 상자 표시
-//            JsonArray sentencesArray = JsonParser.parseString(message).getAsJsonArray();
-//            for (JsonElement sentenceElement : sentencesArray) {
-//                JsonObject sentenceJson = sentenceElement.getAsJsonObject();
-//                JsonArray boundingBoxArray = sentenceJson.getAsJsonArray("boundingBox");
+//    private void checkRegex() {
+//        if (secondList.isEmpty()) {
+//            showErrorDialog("Error", "No text detected. Please analyze the image first.");
+//            return;
+//        }
 //
-//                // 이미지 위에 바운딩 상자 그리기
-//                drawBoundingBoxOnImage(boundingBoxArray);
+//        // Initialize regex patterns
+//        initializeRegexPatterns();
+//
+//        // StringBuilder to store matched values
+//        StringBuilder matchedValuesBuilder = new StringBuilder();
+//
+//        for (int i = 0; i < secondList.size(); i++) {
+//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
+//            boolean isMatched = false;
+//            String matchedPattern = "";
+//
+//            for (String regexPattern : regexPatterns) {
+//                // Check if the text matches the regex pattern
+//                if (Pattern.matches(regexPattern, text)) {
+//                    isMatched = true;
+//                    matchedPattern = regexPattern;
+//                    break;
+//                }
 //            }
-//            dialog.dismiss();
-//        }).create().show();
+//
+//            // Log the matched pattern and text for debugging
+//            Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
+//
+//            // If matched, append the result to the StringBuilder
+//            if (isMatched) {
+////                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
+//            }
+//        }
+//
+//        // Display the matched values in an AlertDialog
+//        if (matchedValuesBuilder.length() > 0) {
+////            showAlert("Matched Values", matchedValuesBuilder.toString());
+//        } else {
+////            showAlert("No Matches", "No text matched any of the regex patterns.");
+//        }
+//
+//        for (int i = 0; i < secondList.size(); i++) {
+//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
+//            boolean isMatched = false;
+//            String matchedPattern = "";
+//
+//            for (String regexPattern : regexPatterns) {
+//                // Check if the text matches the regex pattern
+//                if (Pattern.matches(regexPattern, text)) {
+//                    isMatched = true;
+//                    matchedPattern = regexPattern;
+//                    break;
+//                }
+//            }
+//
+//            // Log the matched pattern and text for debugging
+//            if (isMatched) {
+//                Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
+//                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
+//            } else {
+//                Log.d("Regex", "No match for text: " + text);
+//            }
+//        }
+//
 //    }
+//
+//    private void showAlert(String title, String message) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle(title)
+//                .setMessage(message)
+//                .setPositiveButton("OK", null)
+//                .create()
+//                .show();
+//    }
+
 
 
 }
