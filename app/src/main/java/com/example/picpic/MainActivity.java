@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 showList();
             }
         });
-
+    //test
 
 
         //마스킹 된 사진 저장하기
