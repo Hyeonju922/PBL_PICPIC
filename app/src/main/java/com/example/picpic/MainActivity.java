@@ -424,6 +424,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
+
     //검출된 목록 보기===========================================================
 
     private void showList() {
@@ -445,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                     @Override
-                        public void onClick(DialogInterface dialog, int which) {
+                    public void onClick(DialogInterface dialog, int which) {
                         // 확인 버튼을 눌렀을 때 동작하는 부분
                         applyBlurToSelectedRectangles(checkedItems);
 
@@ -461,6 +464,39 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+
+//
+//    private void showDetectedInfoDialog() {
+//        // 검출된 개인정보 목록을 다이얼로그에 체크리스트로 표시하는 코드
+//        final List<String> detectedInfoList = getDetectedPersonalInformation();
+//        final boolean[] checkedItems = new boolean[detectedInfoList.size()];
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//
+//        builder.setTitle("검출된 개인정보 목록")
+//                .setMultiChoiceItems(detectList.toArray(new CharSequence[detectList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+//                        checkedItems[which] = isChecked; //
+//                    }
+//                })
+//                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // 확인 버튼을 눌렀을 때 동작하는 부분
+//                        applyBlurToSelectedRectangles(checkedItems);
+//
+//                    }
+//                })
+//                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        // 취소 버튼을 눌렀을 때 동작하는 부분 (아직 암것두 안함 뭐가있지)
+//                    }
+//                })
+//                .create()
+//                .show();
+//    }
 
     private List<String> getDetectedPersonalInformation() {
         List<String> detectedInfoList = new ArrayList<>();
@@ -546,6 +582,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
+
+    // 블러처리================================================================
+    private void applyBlurToRedRectangles() {
+        if (originalBitmap != null) {
+            Bitmap bitmapCopy = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+            Canvas canvas = new Canvas(bitmapCopy);
+
+            // 해당 좌표에 블러 처리 적용
+            for (int index : resultIndices) {
+                if (index < firstList.size()) {
+                    JsonArray boundingBox = firstList.get(index);
+
+                    // 사각형 영역 정의 및 클리핑
+                    Path path = new Path();
+                    setPathFromBoundingBox(path, boundingBox);
+                    canvas.save();
+                    canvas.clipPath(path);
+
+                    // 해당 영역에 블러 처리
+                    Bitmap blurredBitmap = applyBlur(originalBitmap);
+                    canvas.drawBitmap(blurredBitmap, 0, 0, null);
+
+                    // 클리핑 해제
+                    canvas.restore();
+                }
+            }
+            imageView.setImageBitmap(bitmapCopy);
+        } else {
+            showErrorDialog("Error", "Failed to get original bitmap");
+        }
+    }
     private void setPathFromBoundingBox(Path path, JsonArray boundingBox) {
         int padding = 10; // 확장할 여백 크기
 
@@ -621,11 +689,26 @@ public class MainActivity extends AppCompatActivity {
 
         // 주민등록번호 정규 표현식
         String[] ResidentRegistrationNumberPatterns = {
-                "\\d{2}(0[1-9]|1[0-2])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
-                ".(0[1-9]|1[0-2])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
-                "\\d(0[1-9])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
-                "1([0-2])(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}",
-                ".(0[1-9]|[1-2]\\d|3[0-1])[-. ][1-4]\\d{3,6}"
+                //앞자리가 6글자 일 때, 뒷자리 7
+                "(\\D{0,20}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{6}\\D{0,20}",
+                //앞자리가 6글자 일 때, 뒷자리 6/5글자
+                "(\\D{0,20}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{5}",
+                "(\\D{0,20}\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{4}",
+
+                //앞자리가 5글자 일 때, 뒷자리 7/6/5글자
+                "(\\d(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{6}\\D{0,20}",
+                "(\\d(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{5}",
+                "(\\d(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{4}",
+
+                //앞자리가 4글자 일 때, 뒷자리 7/6/5글자
+                "((0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{6}\\D{0,20}",
+                "((0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{5}",
+                "((0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01]))[-. ][1-4]\\d{4}",
+
+                //앞자리가 3글자 일 때, 뒷자리 7/6/5글자
+                "(([0-9])(0[1-9]|[12]\\d|3[01]))[-.\\s]?[1-4]\\d{6}\\D{0,20}",
+                "(([0-9])(0[1-9]|[12]\\d|3[01]))[-.\\s]?[1-4]\\d{5}",
+                "(([0-9])(0[1-9]|[12]\\d|3[01]))[-.\\s]?[1-4]\\d{4}"
         };
 
         //계좌번호 정규 표현식
@@ -654,40 +737,130 @@ public class MainActivity extends AppCompatActivity {
         };
 
         // 전화번호 정규 표현식
-        String regexPattern3 = ".*" + "\\b(?:010|02|031|032|033|041|042|043|044|051|052|053|054|055|061|062|063|064)[ -]*\\d{2,4}[ -]*\\d{2,4}\\b" + ".*";
-        String regexPattern4 = ".*" + "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})\\d{4}\\d{4}\\b" + ".*";
-        String regexPattern5 = ".*" + "\\b(?:0[1-9]\\d{0,2}|1[0-6]\\d{0,2})[. -]*\\d{1,4}[. -]*\\d{4}\\b" + ".*";
+        String[] phoneNumberPatterns = {
+                "\\D{0,20}(01[016789][ -.]?\\d{3,4}[ -.]?\\d{4})\\D{0,20}", //휴대전화
+                "\\D{0,20}(02[ -.]?\\d{3,4}[ -.]?\\d{4})\\D{0,20}", //서울
+                "\\D{0,20}(0(3[1-3]|4[1-4]|5[1-5]|6[1-4]|7[0-6]|8[0-9]|9[0-2])[ -.]?\\d{3,4}[ -.]?\\d{4})\\D{0,20}", //지역번호
+        };
 
-        // 카드번호 정규 표현식
+        //카드번호 정규 표현식
         String[] creditCardPatterns = {
-                "\\b4\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",         // VISA
-                "\\b5[1-5]\\d{2}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",     // MasterCard
-                "\\b(?:\\d{4}[ -]?\\d{6}[ -]?\\d{5}|37\\d{2}[ -]?\\d{6}[ -]?\\d{5})\\b",   // American Express
-                "\\b(?:62|\\d{4}[ -]?){3}\\d{4,11}\\b",                    // China UnionPay
-                "\\b9\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",          // 국내 카드 회사
-                "\\b(?:2131|1800|35\\d{3})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",  // JCB
-                "\\b3(?:0[0-5]|[68][0-9])\\d{11}\\b",                      // Diners Club International
-                "\\b6(?:011|5[0-9]{2})[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b",   // Discover Card
-                "\\b(?:^|\\b)(?:\\d{0,3} ?)?\\d{4} ?\\d{4} ?\\d{4}(?:\\b|$)",    // Visa 추가
-                "\\b(?:\\s*\\d{0,3}\\s*)?\\d{1,5}\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b",  // MasterCard 추가
-                "\\b(?:\\s*\\d{0,4}\\s*)?(?:62|\\d{4}\\s*){2,3}\\d{4,11}\\b",     // UnionPay 추가
-                "\\b(?:\\s*\\d{0,4}\\s*)?(?:9\\d{3}|\\d{1,8})\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b",  // 국내 카드 회사 추가
-                "\\b(?:35\\d{2}(?:\\s*\\d{4}){3}|\\s*(?:2[13]|1800)?\\s*\\d{0,4}(?:\\s*\\d{4}){2}\\s*\\d{4})\\b",  // JCB 추가
-                "\\b(?:\\s*\\d{0,4}\\s*)?(?:6(?:011|5[0-9]{2})|\\d{1,8})\\s*\\d{4}\\s*\\d{4}\\s*\\d{4}\\b"   // Discover 추가
+                "\\D{0,20}\\b4\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b\\D{0,20}", // VISA
+                "\\D{0,20}\\b5[1-5]\\d{2}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b\\D{0,20}", // Master
+                "\\D{0,20}3710[- ][0-9]{2}?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3747[- ][0-9]{2}?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3751[- ]44?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3759[- ]87?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3762[- ][0-9]{2}?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3763[- ][0-9]{2}?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3779[- ][0-9]{2}?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}",
+                "\\D{0,20}3791[- ][0-9]{2}?[0-9]{4}[- ]?[0-9]{5}\\D{0,20}", //아멕스
+                "\\D{0,20}\\b9\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b\\D{0,20}", // 국내카드
+                "\\D{0,20}\\b6(?:210[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}|210\\d{12})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:233[ -]?74\\d{2}[ -]?\\d{4}[ -]?\\d{4}|23374\\d{10})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:243[ -]?48\\d{2}[ -]?\\d{4}[ -]?\\d{4}|24348\\d{10})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:244[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}|244\\d{12})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:251[ -]?04\\d{2}[ -]?\\d{4}[ -]?\\d{4}|25104\\d{10})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:253[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}|253\\d{12})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:258[ -]?04\\d{2}[ -]?\\d{4}[ -]?\\d{4}|25804\\d{10})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:258[ -]?17\\d{2}[ -]?\\d{4}[ -]?\\d{4}|25817\\d{10})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:259[ -]?04\\d{2}[ -]?\\d{4}[ -]?\\d{4}|25904\\d{10})\\b\\D{0,20}",
+                "\\D{0,20}\\b6(?:259[ -]?04\\d{2}[ -]?\\d{4}[ -]?\\d{4}|25904\\d{10})\\b\\D{0,20}", // China UnionPay
+                "\\D{0,20}\\b3560\\d{10}\\b\\D{0,20}",
+                "\\D{0,20}\\b3562(96|97)\\d{8}\\b\\D{0,20}",
+                "\\D{0,20}\\b3563\\d{10}\\b\\D{0,20}",
+                "\\D{0,20}\\b3564(07|15|16|17|18)\\d{8}\\b\\D{0,20}",
+                "\\D{0,20}\\b3565(16|43|45)\\d{8}\\b\\D{0,20}",
+                "\\D{0,20}\\b3568(20)\\d{8}\\b\\D{0,20}",
+                "\\D{0,20}\\b3569(00|01|02|10|11|12|14|15|16)\\d{8}\\b\\D{0,20}" // JCB
         };
 
         // 정규 표현식 패턴 리스트 초기화
         regexPatterns = new ArrayList<>();
         regexPatterns.addAll(Arrays.asList(ResidentRegistrationNumberPatterns));
         regexPatterns.addAll(Arrays.asList(accountNumberPatterns));
-        regexPatterns.add(regexPattern3);
-        regexPatterns.add(regexPattern4);
-        regexPatterns.add(regexPattern5);
+        regexPatterns.addAll(Arrays.asList(phoneNumberPatterns));
         regexPatterns.addAll(Arrays.asList(creditCardPatterns));
 
         return regexPatterns;
     }
 
+//
+//    private void checkRegex() {
+//        if (secondList.isEmpty()) {
+//            showErrorDialog("Error", "No text detected. Please analyze the image first.");
+//            return;
+//        }
+//
+//        // Initialize regex patterns
+//        initializeRegexPatterns();
+//
+//        // StringBuilder to store matched values
+//        StringBuilder matchedValuesBuilder = new StringBuilder();
+//
+//        for (int i = 0; i < secondList.size(); i++) {
+//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
+//            boolean isMatched = false;
+//            String matchedPattern = "";
+//
+//            for (String regexPattern : regexPatterns) {
+//                // Check if the text matches the regex pattern
+//                if (Pattern.matches(regexPattern, text)) {
+//                    isMatched = true;
+//                    matchedPattern = regexPattern;
+//                    break;
+//                }
+//            }
+//
+//            // Log the matched pattern and text for debugging
+//            Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
+//
+//            // If matched, append the result to the StringBuilder
+//            if (isMatched) {
+////                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
+//            }
+//        }
+//
+//        // Display the matched values in an AlertDialog
+//        if (matchedValuesBuilder.length() > 0) {
+////            showAlert("Matched Values", matchedValuesBuilder.toString());
+//        } else {
+////            showAlert("No Matches", "No text matched any of the regex patterns.");
+//        }
+//
+//        for (int i = 0; i < secondList.size(); i++) {
+//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
+//            boolean isMatched = false;
+//            String matchedPattern = "";
+//
+//            for (String regexPattern : regexPatterns) {
+//                // Check if the text matches the regex pattern
+//                if (Pattern.matches(regexPattern, text)) {
+//                    isMatched = true;
+//                    matchedPattern = regexPattern;
+//                    break;
+//                }
+//            }
+//
+//            // Log the matched pattern and text for debugging
+//            if (isMatched) {
+//                Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
+//                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
+//            } else {
+//                Log.d("Regex", "No match for text: " + text);
+//            }
+//        }
+//
+//    }
+//
+//    private void showAlert(String title, String message) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle(title)
+//                .setMessage(message)
+//                .setPositiveButton("OK", null)
+//                .create()
+//                .show();
+//    }
 
 
 
