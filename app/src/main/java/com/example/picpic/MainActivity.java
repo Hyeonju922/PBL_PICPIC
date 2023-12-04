@@ -68,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private List<String> thirdList = new ArrayList<>(); // 텍스트를 저장할 리스트 (단어)
 
     private List<String>detectList = new ArrayList<>();
-    private List<String>test1 = new ArrayList<>();
-    private List<String>test2 = new ArrayList<>();
 
     private List<Integer> matchingIndices = new ArrayList<>(); // 몇번쨰 열에서 검출되었는지 ( second)
 
@@ -523,8 +521,6 @@ public class MainActivity extends AppCompatActivity {
                     for(int j = 0; j<indexL.size(); j++){
                         if(indexL.get(j) == matchingIndices.get(i)){
 
-                            test1.add(matchingIndices.get(i).toString());
-                            test2.add(indexL.get(j).toString());
 
                             JsonArray boundingBox = firstList.get(j);
                             Path path = new Path();
@@ -538,8 +534,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 }
-                TextView tv = findViewById(R.id.textView);//검출된 개인정보 개수 출력 textview
-                tv.setText("개인정보가 " + test2.toString()+" ////" +test2.toString() );
+
             }
             imageView.setImageBitmap(bitmapCopy);
         } else {
