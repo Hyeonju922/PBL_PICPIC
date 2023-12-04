@@ -424,9 +424,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
-
     //검출된 목록 보기===========================================================
 
     private void showList() {
@@ -448,7 +445,7 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setPositiveButton("확인", new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
+                        public void onClick(DialogInterface dialog, int which) {
                         // 확인 버튼을 눌렀을 때 동작하는 부분
                         applyBlurToSelectedRectangles(checkedItems);
 
@@ -464,39 +461,6 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-
-//
-//    private void showDetectedInfoDialog() {
-//        // 검출된 개인정보 목록을 다이얼로그에 체크리스트로 표시하는 코드
-//        final List<String> detectedInfoList = getDetectedPersonalInformation();
-//        final boolean[] checkedItems = new boolean[detectedInfoList.size()];
-//
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//
-//        builder.setTitle("검출된 개인정보 목록")
-//                .setMultiChoiceItems(detectList.toArray(new CharSequence[detectList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-//                        checkedItems[which] = isChecked; //
-//                    }
-//                })
-//                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        // 확인 버튼을 눌렀을 때 동작하는 부분
-//                        applyBlurToSelectedRectangles(checkedItems);
-//
-//                    }
-//                })
-//                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        // 취소 버튼을 눌렀을 때 동작하는 부분 (아직 암것두 안함 뭐가있지)
-//                    }
-//                })
-//                .create()
-//                .show();
-//    }
 
     private List<String> getDetectedPersonalInformation() {
         List<String> detectedInfoList = new ArrayList<>();
@@ -582,38 +546,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
-    // 블러처리================================================================
-    private void applyBlurToRedRectangles() {
-        if (originalBitmap != null) {
-            Bitmap bitmapCopy = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
-            Canvas canvas = new Canvas(bitmapCopy);
-
-            // 해당 좌표에 블러 처리 적용
-            for (int index : resultIndices) {
-                if (index < firstList.size()) {
-                    JsonArray boundingBox = firstList.get(index);
-
-                    // 사각형 영역 정의 및 클리핑
-                    Path path = new Path();
-                    setPathFromBoundingBox(path, boundingBox);
-                    canvas.save();
-                    canvas.clipPath(path);
-
-                    // 해당 영역에 블러 처리
-                    Bitmap blurredBitmap = applyBlur(originalBitmap);
-                    canvas.drawBitmap(blurredBitmap, 0, 0, null);
-
-                    // 클리핑 해제
-                    canvas.restore();
-                }
-            }
-            imageView.setImageBitmap(bitmapCopy);
-        } else {
-            showErrorDialog("Error", "Failed to get original bitmap");
-        }
-    }
     private void setPathFromBoundingBox(Path path, JsonArray boundingBox) {
         int padding = 10; // 확장할 여백 크기
 
@@ -756,82 +688,6 @@ public class MainActivity extends AppCompatActivity {
         return regexPatterns;
     }
 
-//
-//    private void checkRegex() {
-//        if (secondList.isEmpty()) {
-//            showErrorDialog("Error", "No text detected. Please analyze the image first.");
-//            return;
-//        }
-//
-//        // Initialize regex patterns
-//        initializeRegexPatterns();
-//
-//        // StringBuilder to store matched values
-//        StringBuilder matchedValuesBuilder = new StringBuilder();
-//
-//        for (int i = 0; i < secondList.size(); i++) {
-//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
-//            boolean isMatched = false;
-//            String matchedPattern = "";
-//
-//            for (String regexPattern : regexPatterns) {
-//                // Check if the text matches the regex pattern
-//                if (Pattern.matches(regexPattern, text)) {
-//                    isMatched = true;
-//                    matchedPattern = regexPattern;
-//                    break;
-//                }
-//            }
-//
-//            // Log the matched pattern and text for debugging
-//            Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
-//
-//            // If matched, append the result to the StringBuilder
-//            if (isMatched) {
-////                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
-//            }
-//        }
-//
-//        // Display the matched values in an AlertDialog
-//        if (matchedValuesBuilder.length() > 0) {
-////            showAlert("Matched Values", matchedValuesBuilder.toString());
-//        } else {
-////            showAlert("No Matches", "No text matched any of the regex patterns.");
-//        }
-//
-//        for (int i = 0; i < secondList.size(); i++) {
-//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
-//            boolean isMatched = false;
-//            String matchedPattern = "";
-//
-//            for (String regexPattern : regexPatterns) {
-//                // Check if the text matches the regex pattern
-//                if (Pattern.matches(regexPattern, text)) {
-//                    isMatched = true;
-//                    matchedPattern = regexPattern;
-//                    break;
-//                }
-//            }
-//
-//            // Log the matched pattern and text for debugging
-//            if (isMatched) {
-//                Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
-//                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
-//            } else {
-//                Log.d("Regex", "No match for text: " + text);
-//            }
-//        }
-//
-//    }
-//
-//    private void showAlert(String title, String message) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle(title)
-//                .setMessage(message)
-//                .setPositiveButton("OK", null)
-//                .create()
-//                .show();
-//    }
 
 
 
