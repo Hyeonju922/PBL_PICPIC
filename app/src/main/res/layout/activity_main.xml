@@ -10,19 +10,23 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="match_parent"
-        android:layout_height="461dp"
+        android:layout_height="350dp"
         android:scaleType="fitCenter" />
 
     <Button
         android:id="@+id/btnSelectImage"
-        android:layout_width="wrap_content"
+        android:background="@drawable/background_radius"
+        android:layout_width="200dp"
+        android:layout_margin="3dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="사진 선택하기" />
 
     <Button
         android:id="@+id/btnTestImage"
-        android:layout_width="wrap_content"
+        android:background="@drawable/background_radius"
+        android:layout_width="200dp"
+        android:layout_margin="3dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="개인정보 검사하기" />
@@ -30,14 +34,18 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
+        android:layout_margin="3dp"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:gravity="center_horizontal"
         />
 
     <Button
         android:id="@+id/btnList"
-        android:layout_width="wrap_content"
+        android:background="@drawable/background_radius"
+        android:layout_width="200dp"
+        android:layout_margin="3dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="검출목록 보기" />
@@ -45,7 +53,9 @@
 
     <Button
         android:id="@+id/btnSaveImage"
-        android:layout_width="wrap_content"
+        android:background="@drawable/background_radius"
+        android:layout_width="200dp"
+        android:layout_margin="3dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="이미지 저장하기" />
