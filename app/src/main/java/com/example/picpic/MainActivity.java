@@ -22,6 +22,7 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextClock;
 import android.widget.TextView;
@@ -84,17 +85,29 @@ public class MainActivity extends AppCompatActivity {
 
     private List<String> regexPatterns; //정규표현식
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
+
         //위젯 연결
         imageView = findViewById(R.id.imageView);//사진 출력할 imageview
-        TextView tv = findViewById(R.id.textView);//검출된 개인정보 개수 출력 textview
+        //버튼 위젯 연결
+        Button btnSelectImage = findViewById(R.id.btnSelectImage);
+        Button btnTestImage = findViewById(R.id.btnTestImage);
+        Button btnList = findViewById(R.id.btnList);
+        Button btnSaveImage = findViewById(R.id.btnSaveImage);
 
+
+
+        //버튼 가시성 초기 설정
+        btnSelectImage.setVisibility(View.VISIBLE);
+        btnTestImage.setVisibility(View.INVISIBLE);
+        btnList.setVisibility(View.INVISIBLE);
+        btnSaveImage.setVisibility(View.INVISIBLE);
 
 
 
@@ -110,33 +123,44 @@ public class MainActivity extends AppCompatActivity {
         //버튼과 메소드 연결=============================================================================
 
         //사진 선택
-        findViewById(R.id.btnSelectImage).setOnClickListener(new View.OnClickListener() {
+        btnSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectImage();
+
+
+                btnTestImage.setVisibility(View.VISIBLE);
+                btnList.setVisibility(View.INVISIBLE);
+                btnSaveImage.setVisibility(View.INVISIBLE);
+                btnSelectImage.setText("새로운 사진 선택");
+
             }
         });
         //개인정보 검사
-        findViewById(R.id.btnTestImage).setOnClickListener(new View.OnClickListener() {
+        btnTestImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 testImage();
+                btnTestImage.setVisibility(View.GONE);
+                btnList.setVisibility(View.VISIBLE);
+                btnSaveImage.setVisibility(View.INVISIBLE);
+
             }
         });
         //검출된 개인정보 목록 보기
-        findViewById(R.id.btnList).setOnClickListener(new View.OnClickListener() {
+        btnList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                checkRegex();
-//                showDetectedInfoDialog();
                 showList();
+                btnTestImage.setVisibility(View.GONE);
+                btnList.setVisibility(View.VISIBLE);
+                btnSaveImage.setVisibility(View.VISIBLE);
+
             }
+
         });
-    //test
-
-
         //마스킹 된 사진 저장하기
-        findViewById(R.id.btnSaveImage).setOnClickListener(new View.OnClickListener() {
+        btnSaveImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Bitmap blurredBitmap = getBitmapFromImageView(); // 또는 블러 처리된 이미지를 가져오는 다른 방법 사용
@@ -160,10 +184,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    //사진 선택=====================================================================
+    //사진 선택=========================================================================
     private void selectImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent,PICK_IMAGE_REQUEST);
+
+
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -217,6 +243,9 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
             showErrorDialog("Error", e.getMessage());
         }
+
+        // btnTestImage 버튼을 보이게 함
+
     }
 
 
@@ -798,82 +827,6 @@ public class MainActivity extends AppCompatActivity {
         return regexPatterns;
     }
 
-//
-//    private void checkRegex() {
-//        if (secondList.isEmpty()) {
-//            showErrorDialog("Error", "No text detected. Please analyze the image first.");
-//            return;
-//        }
-//
-//        // Initialize regex patterns
-//        initializeRegexPatterns();
-//
-//        // StringBuilder to store matched values
-//        StringBuilder matchedValuesBuilder = new StringBuilder();
-//
-//        for (int i = 0; i < secondList.size(); i++) {
-//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
-//            boolean isMatched = false;
-//            String matchedPattern = "";
-//
-//            for (String regexPattern : regexPatterns) {
-//                // Check if the text matches the regex pattern
-//                if (Pattern.matches(regexPattern, text)) {
-//                    isMatched = true;
-//                    matchedPattern = regexPattern;
-//                    break;
-//                }
-//            }
-//
-//            // Log the matched pattern and text for debugging
-//            Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
-//
-//            // If matched, append the result to the StringBuilder
-//            if (isMatched) {
-////                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
-//            }
-//        }
-//
-//        // Display the matched values in an AlertDialog
-//        if (matchedValuesBuilder.length() > 0) {
-////            showAlert("Matched Values", matchedValuesBuilder.toString());
-//        } else {
-////            showAlert("No Matches", "No text matched any of the regex patterns.");
-//        }
-//
-//        for (int i = 0; i < secondList.size(); i++) {
-//            String text = secondList.get(i).trim(); // Trim to remove leading/trailing whitespaces
-//            boolean isMatched = false;
-//            String matchedPattern = "";
-//
-//            for (String regexPattern : regexPatterns) {
-//                // Check if the text matches the regex pattern
-//                if (Pattern.matches(regexPattern, text)) {
-//                    isMatched = true;
-//                    matchedPattern = regexPattern;
-//                    break;
-//                }
-//            }
-//
-//            // Log the matched pattern and text for debugging
-//            if (isMatched) {
-//                Log.d("Regex", "Text: " + text + ", Matched Pattern: " + matchedPattern);
-//                matchedValuesBuilder.append("Text: ").append(text).append("\nPattern: ").append(matchedPattern).append("\n\n");
-//            } else {
-//                Log.d("Regex", "No match for text: " + text);
-//            }
-//        }
-//
-//    }
-//
-//    private void showAlert(String title, String message) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle(title)
-//                .setMessage(message)
-//                .setPositiveButton("OK", null)
-//                .create()
-//                .show();
-//    }
 
 
 
