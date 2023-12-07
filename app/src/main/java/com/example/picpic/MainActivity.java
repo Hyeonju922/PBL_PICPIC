@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    // Cloud Vision API를 사용하여 이미지에서 텍스트 탐지
+    // Cloud Vision API를 사용해 이미지에서 텍스트 탐지
     private void detectTextFromImage(Bitmap bitmap) {
         Log.d("MainActivity", "Detecting text from image...");
 
