@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,9 +43,7 @@ import com.google.cloud.vision.v1.ImageAnnotatorClient;
 import com.google.cloud.vision.v1.ImageAnnotatorSettings;
 import com.google.cloud.vision.v1.Vertex;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
 
 import java.io.ByteArrayOutputStream;
@@ -61,37 +58,31 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST= 1;// 이미지 선택을 위한 요청 코드
-    private ImageView imageView; // 이미지를 표시할 ImageView
-    private Bitmap originalBitmap;// 선택된 원본 이미지
+    private Bitmap originalBitmap;// 선택된 원본 이미지의 비트맵
     private BatchAnnotateImagesResponse responses; // Cloud Vision API 응답을 저장
-    private List<JsonArray> firstList = new ArrayList<>(); // 좌표를 저장할 리스트 (단어)
-    private List<String> secondList = new ArrayList<>(); // 텍스트를 저장할 리스트 (열)
-    private List<String> thirdList = new ArrayList<>(); // 텍스트를 저장할 리스트 (단어)
 
-    private List<String>detectList = new ArrayList<>();
+    private List<JsonArray> firstList = new ArrayList<>(); // 좌표를 저장할 리스트 (단어단위)
 
-    private List<Integer> matchingIndices = new ArrayList<>(); // 몇번쨰 열에서 검출되었는지 ( second)
+    private List<String> secondList = new ArrayList<>(); // 텍스트를 저장할 리스트 (문장단위)
+    private List<String> thirdList = new ArrayList<>(); // 텍스트를 저장할 리스트 (단어단위)
 
+    private List<String>detectList = new ArrayList<>(); // 검출된 개인정보 항목
+
+    private List<Integer> matchingIndices = new ArrayList<>(); // 개인정보로 분류된 텍스트 문장이 몇번째인지 저장
     private List<Integer> resultIndices = new ArrayList<>();//  검출된 단어 목록 (검출된 열의 모든 단어 )
+    private List<Integer> indexL = new ArrayList<>(); //단어마다 어떤 문장 해당하는지에 대한 인덱스 저장
+
+    private List<Integer> secondListLength = new ArrayList<>(); //문장단위 텍스트 길이
+    private List<Integer> thirdListLength = new ArrayList<>(); //단어단위 텍스트 길이
 
 
-
-    //단어를 열에 맞춰 인덱싱할때 쓰이는 문자 길이
-    private List<Integer> secondListLength = new ArrayList<>();
-    private List<Integer> thirdListLength = new ArrayList<>();
-
-
-    private List<Integer> indexL = new ArrayList<>(); //단어마다 어떤 열에 해당하는지에 대한 인덱스
-
-    private List<String> regexPatterns; //정규표현식
+    private List<String> regexPatterns; //정규표현식을 저장
+    private ImageView imageView; // 이미지를 표시할 ImageView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-
 
         //위젯 연결
         imageView = findViewById(R.id.imageView);//사진 출력할 imageview
@@ -101,15 +92,11 @@ public class MainActivity extends AppCompatActivity {
         Button btnList = findViewById(R.id.btnList);
         Button btnSaveImage = findViewById(R.id.btnSaveImage);
 
-
-
         //버튼 가시성 초기 설정
         btnSelectImage.setVisibility(View.VISIBLE);
         btnTestImage.setVisibility(View.INVISIBLE);
         btnList.setVisibility(View.INVISIBLE);
         btnSaveImage.setVisibility(View.INVISIBLE);
-
-
 
         // Cloud Vision SDK 초기화
         try {
@@ -118,16 +105,21 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
-
-        //버튼과 메소드 연결=============================================================================
-
         //사진 선택
         btnSelectImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectImage();
+                try {
+                    Thread.sleep(1000); // 1.0초 동안 대기
 
+
+                    TextView tv = findViewById(R.id.textView);//검출된 개인정보 개수 출력 textview
+                    tv.setText("");
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
                 btnTestImage.setVisibility(View.VISIBLE);
                 btnList.setVisibility(View.INVISIBLE);
@@ -177,20 +169,14 @@ public class MainActivity extends AppCompatActivity {
         initializeRegexPatterns();
     }
 
-
-
-
-
-
-
-
-    //사진 선택=========================================================================
+    //사진 선택
     private void selectImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         startActivityForResult(intent,PICK_IMAGE_REQUEST);
 
 
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -200,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
             displaySelectedImage(imageUri);
         }
     }
+
     //사진 화면에 출력
     private void displaySelectedImage(Uri imageUri) {
         try {
@@ -212,9 +199,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-
-    // 이미지 내 개인정보 검사===============================================================
+    // 이미지 내 개인정보 검사
     private void testImage() {
 
         if (imageView.getDrawable() == null) {
@@ -247,9 +232,6 @@ public class MainActivity extends AppCompatActivity {
         // btnTestImage 버튼을 보이게 함
 
     }
-
-
-
 
     // Cloud Vision API를 사용하여 이미지에서 텍스트 탐지
     private void detectTextFromImage(Bitmap bitmap) {
@@ -312,6 +294,8 @@ public class MainActivity extends AppCompatActivity {
             showErrorDialog("Error", e.getMessage());
         }
     }
+
+    //이미지에 개인정보로 분류된 텍스트에 대해 바운딩 박스 표시
     private void drawBoundingBoxOnImage(JsonArray boundingBoxArray, int index) {
         // 이미지 뷰에서 비트맵 가져오기
         Bitmap originalBitmap = getBitmapFromImageView();
@@ -395,6 +379,8 @@ public class MainActivity extends AppCompatActivity {
         calculateIndexAndSum(secondListLength, thirdListLength);
         return sentencesJsonArray;
     }
+
+    //정규표현식에 부합하는지 검사
     private List<Integer> getIndicesMatchingRegexPatterns(List<String> inputList, List<String> regexPatterns) {
         List<Integer> matchingIndices = new ArrayList<>();
 
@@ -412,6 +398,8 @@ public class MainActivity extends AppCompatActivity {
         }
         return matchingIndices;
     }
+
+    //개인정보로 분류된 단어의 인덱스 추출
     private List<Integer> getMatchingIndices(List<Integer> matchingIndices, List<Integer> indexL) {
         List<Integer> resultIndices = new ArrayList<>();
 
@@ -427,6 +415,8 @@ public class MainActivity extends AppCompatActivity {
         return resultIndices;
 
     }
+
+    //텍스트 길이 계산
     private void Length(List<String> inputList, List<Integer> targetList, String listName) {
         for (String item : inputList) {
             // 공백을 제거한 후 길이를 계산하여 리스트에 추가
@@ -436,6 +426,7 @@ public class MainActivity extends AppCompatActivity {
             targetList.add(length);
         }
     }
+    //해당 단어가 몇번째 줄에  포함되는지 계산
     private void calculateIndexAndSum(List<Integer> secondListLength, List<Integer> thirdListLength) {
         int index_car = 0;
         int sum = 0;
@@ -451,11 +442,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //==========================================================
 
-
-
-    //검출된 목록 보기===========================================================
-
+    //검출된 목록 보기
     private void showList() {
         // 검출된 개인정보 목록을 다이얼로그에 체크리스트로 표시하는 코드
         final boolean[] checkedItems = new boolean[matchingIndices.size()]; //블러에 전달한 거
@@ -466,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
-        builder.setTitle("검출된 개인정보 목록")
+        builder.setTitle("마스킹할 항목을 선택하세요!")
                 .setMultiChoiceItems(detectList.toArray(new CharSequence[detectList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which, boolean isChecked) {
@@ -491,54 +480,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-
-//
-//    private void showDetectedInfoDialog() {
-//        // 검출된 개인정보 목록을 다이얼로그에 체크리스트로 표시하는 코드
-//        final List<String> detectedInfoList = getDetectedPersonalInformation();
-//        final boolean[] checkedItems = new boolean[detectedInfoList.size()];
-//
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//
-//        builder.setTitle("검출된 개인정보 목록")
-//                .setMultiChoiceItems(detectList.toArray(new CharSequence[detectList.size()]), checkedItems, new DialogInterface.OnMultiChoiceClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-//                        checkedItems[which] = isChecked; //
-//                    }
-//                })
-//                .setPositiveButton("확인", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        // 확인 버튼을 눌렀을 때 동작하는 부분
-//                        applyBlurToSelectedRectangles(checkedItems);
-//
-//                    }
-//                })
-//                .setNegativeButton("취소", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        // 취소 버튼을 눌렀을 때 동작하는 부분 (아직 암것두 안함 뭐가있지)
-//                    }
-//                })
-//                .create()
-//                .show();
-//    }
-
-    private List<String> getDetectedPersonalInformation() {
-        List<String> detectedInfoList = new ArrayList<>();
-
-        // 이전의 코드와 동일하게 검출된 개인정보를 가져와서 리스트에 추가
-        for (int index : resultIndices) {
-            if (index < thirdList.size()) {
-                detectedInfoList.add(thirdList.get(index));
-            }
-        }
-
-        return detectedInfoList;
-    }
-
-
+    //선택항목에 대한 블러처리
     private void applyBlurToSelectedRectangles(boolean[] checkedItems) {
         if (originalBitmap != null) {
             Bitmap bitmapCopy = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
@@ -581,14 +523,11 @@ public class MainActivity extends AppCompatActivity {
         Uri uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
         try (OutputStream outputStream = getContentResolver().openOutputStream(uri)) {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-            Toast.makeText(this, "Image saved to gallery", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "갤러리에 저장되었습니다", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             Toast.makeText(this, "Error saving image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
-
-
-
 
     // ImageView에서 Bitmap을 가져오는 메서드
     private Bitmap getBitmapFromImageView() {
@@ -605,39 +544,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //================================================================
 
-
-
-    // 블러처리================================================================
-    private void applyBlurToRedRectangles() {
-        if (originalBitmap != null) {
-            Bitmap bitmapCopy = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
-            Canvas canvas = new Canvas(bitmapCopy);
-
-            // 해당 좌표에 블러 처리 적용
-            for (int index : resultIndices) {
-                if (index < firstList.size()) {
-                    JsonArray boundingBox = firstList.get(index);
-
-                    // 사각형 영역 정의 및 클리핑
-                    Path path = new Path();
-                    setPathFromBoundingBox(path, boundingBox);
-                    canvas.save();
-                    canvas.clipPath(path);
-
-                    // 해당 영역에 블러 처리
-                    Bitmap blurredBitmap = applyBlur(originalBitmap);
-                    canvas.drawBitmap(blurredBitmap, 0, 0, null);
-
-                    // 클리핑 해제
-                    canvas.restore();
-                }
-            }
-            imageView.setImageBitmap(bitmapCopy);
-        } else {
-            showErrorDialog("Error", "Failed to get original bitmap");
-        }
-    }
+    //바운딩 박스 경로
     private void setPathFromBoundingBox(Path path, JsonArray boundingBox) {
         int padding = 10; // 확장할 여백 크기
 
@@ -668,6 +577,7 @@ public class MainActivity extends AppCompatActivity {
 
         path.close();
     }
+    //실제 블러 처리
     private Bitmap applyBlur(Bitmap image) {
         float radius = 25.0f; // 블러 강도
         Bitmap blurred = image.copy(image.getConfig(), true);
@@ -699,7 +609,7 @@ public class MainActivity extends AppCompatActivity {
 
     //================================================================================
 
-    //에러 발생시 알림창
+    //에러 발생시 알림창 출력
     private void showErrorDialog(String title, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title)
@@ -709,6 +619,7 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    //정규표현식 초기값 설정
     private List<String> initializeRegexPatterns() {
 
         // 주민등록번호 정규 표현식
@@ -826,8 +737,5 @@ public class MainActivity extends AppCompatActivity {
 
         return regexPatterns;
     }
-
-
-
 
 }
