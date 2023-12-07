@@ -738,7 +738,6 @@ public class MainActivity extends AppCompatActivity {
                 "\\D{0,20}(0(3[1-3]|4[1-4]|5[1-5]|6[1-4]|7[0-6]|8[0-9]|9[0-2])[ -.]?\\d{3,4}[ -.]?\\d{4})\\D{0,20}", //지역번호
         };
 
-
         //카드번호 정규 표현식
         String[] creditCardPatterns = {
                 "\\D{0,20}\\b4\\d{3}[ -]?\\d{4}[ -]?\\d{4}[ -]?\\d{4}\\b\\D{0,20}", // VISA
