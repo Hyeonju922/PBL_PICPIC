@@ -8,7 +8,3 @@
 ![9](https://github.com/Hyeonju922/PBL_PICPIC/assets/108861088/e904ebf5-ee31-44b6-904f-bd4186126803)
 
 
-https://github.com/Hyeonju922/PBL_PICPIC/assets/108861088/09944d30-bcf3-4a39-b393-df6be7d6d8f5
-
-
-
