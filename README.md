@@ -1,6 +1,6 @@
 ## 이미지 내 개인정보 검출 및 비식별화 프로그램
 
-###  PICPIC (privac information capture)
+###  PICPIC (privacy information capture)
 
 
 
