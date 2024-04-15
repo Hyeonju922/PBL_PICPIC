@@ -1,3 +1,11 @@
+## 이미지 내 개인정보 검출 및 비식별화 프로그램
+
+###  PICPIC 
+
+
+
+
+
 ![Technology in the Life of Consumers Technology Presentation in Blue Illustrative Style](https://github.com/Hyeonju922/PBL_PICPIC/assets/108861088/cc1d4fa7-e146-49dd-b95f-cee7461ca9f8)
 ![2](https://github.com/Hyeonju922/PBL_PICPIC/assets/108861088/65541201-3e36-41d9-a882-fb7b40553645)
 ![3](https://github.com/Hyeonju922/PBL_PICPIC/assets/108861088/88aeb1d0-c781-4d52-b142-e8b1285cd436)
